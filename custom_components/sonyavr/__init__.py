@@ -9,6 +9,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_MODEL, CONF_PORT
 from .const import DOMAIN, CONF_MAX_VOLUME
 
 from .sonyavr import SonyAVR
+from .es_receiver import SonyESReceiver, is_str_da5800es
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +30,8 @@ async def async_setup_entry(
 
     _LOGGER.debug("Adding %s from config", hass_data[CONF_HOST])
 
-    sonyavr = SonyAVR(
+    receiver_class = SonyESReceiver if is_str_da5800es(hass_data[CONF_MODEL]) else SonyAVR
+    sonyavr = receiver_class(
         hass,
         entry,
         hass_data[CONF_HOST],
@@ -38,7 +40,7 @@ async def async_setup_entry(
         int(hass_data.get(CONF_PORT, "33335")),
     )
 
-    if entry.options.get(CONF_MAX_VOLUME):
+    if entry.options.get(CONF_MAX_VOLUME) is not None:
         _update_max_volume(sonyavr, entry.options.get(CONF_MAX_VOLUME))
 
     hass_data["sonyavr"] = sonyavr
@@ -64,7 +66,7 @@ async def options_update_listener(
 ):
     _update_max_volume(
         hass.data[DOMAIN][config_entry.entry_id]["sonyavr"],
-        config_entry.options[CONF_MAX_VOLUME],
+        config_entry.options.get(CONF_MAX_VOLUME),
     )
 
     """Handle options update."""

@@ -110,3 +110,7 @@ class SonyAVRDevice(SensorEntity):
     @property
     def native_value(self):
         return self._device.volume
+
+    @property
+    def available(self):
+        return getattr(self._device, "available", True)

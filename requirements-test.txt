@@ -1,0 +1,4 @@
+homeassistant==2026.9.4
+asyncping3==5.1.3
+pytest>=8,<10
+pytest-asyncio>=1,<2

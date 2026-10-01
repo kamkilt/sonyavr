@@ -107,12 +107,16 @@ class SonyAVRDevice(RemoteEntity):
 
     @property
     def state(self):
-        if not self._device.state_service.power:
+        if self._device.state_service.power is False:
             return "off"
         elif self._device.state_service.power:
             return "on"
         else:
             return None
+
+    @property
+    def available(self):
+        return getattr(self._device, "available", True)
 
     @property
     def is_volume_muted(self):

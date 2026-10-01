@@ -28,10 +28,22 @@ For other AVRs, you may need to change the default port during configuration.  B
 | 33336 | DN-1070 & CISv2 |
 | 33335 | All Others |
 
-The integration is a Local Push integration - i.e. it subscribes to notification of changes to the AVR, so doesn't need to periodically poll for its state.
+The integration receives notifications of changes from the AVR. The STR-DA5800ES also uses periodic read-only queries to recover missed notifications.
 
 ## Network Standby
-The integration requires Network Standby to be available and enabled on the AVR.  Please make sure Network Standby is enabled befoer installing the integration.
+For the legacy receiver implementation, enable Network Standby before installing the integration.
+
+### STR-DA5800ES
+
+Enter `STR-DA5800ES` as the model (underscores and spaces are also accepted), use TCP port `33335`, and enable **External Control** on the receiver.
+
+This model uses one connection for commands and push notifications. Startup and reconnection read power, mute, input, volume, sound mode and Sound Optimizer without changing the receiver's settings. Input names are read from the receiver, including custom names. Volume supports 0.5 dB steps and a configurable maximum, including 0 dB. State queries run every 15 seconds as a fallback; reconnect attempts back off from 2 to 30 seconds. The legacy power-cycle initialization and ping options are not used for this model.
+
+Network Standby is optional for this implementation. With it **disabled**, powering down may remove network access. The entities then become `unavailable` and their old readings are cleared. A disconnected receiver cannot be distinguished reliably from a network fault, and cannot be turned on over this connection. After physical power-on, the integration reconnects and reads the current states. With Network Standby **enabled**, a responding receiver can report `off` and accept a power-on command.
+
+Two additional commands are available through `sonyavr.send_command`: **Set HDMI Output** (`A`, `B`, `A+B`, `Off`) and **Set Sound Optimizer** (`Off`, `Normal`, `Low`). The `sound_optimizer` attribute is read from the receiver. `last_requested_hdmi_output` records the last accepted command only; changing HDMI output with another remote is not reflected because a reliable getter has not been established.
+
+The new implementation has automated protocol and connection tests on Home Assistant 2026.9.4. Passive state and input-list reads have also been verified on a STR-DA5800ES. Control, standby and physical restart tests in Home Assistant are still required; see [STR-DA5800ES testing](docs/str-da5800es-testing.md).
 
 ## Installation
 

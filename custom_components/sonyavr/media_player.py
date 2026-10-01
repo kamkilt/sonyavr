@@ -94,11 +94,14 @@ class SonyAVRDevice(MediaPlayerEntity):
         ).replace(":", "_")
         self._device_class = "receiver"
         self._notifier_task: asyncio.Task | None = None
+        self._ping_task: asyncio.Task | None = None
 
     async def _async_startup(self, loop):
         self._notifier_task = self.hass.async_create_background_task(
             self._device.run_notifier(), name="sonyavr notifier task"
         )
+        if getattr(self._device, "passive_initialization", False):
+            return
         self._ping_task = self.hass.async_create_background_task(
             self._device.run_ping_watcher(), name="sonyavr ping watcher task"
         )
@@ -124,9 +127,10 @@ class SonyAVRDevice(MediaPlayerEntity):
 
     async def async_added_to_hass(self):
         """Subscribe to device events."""
+        await super().async_added_to_hass()
         self._device.set_update_cb(self.async_update_callback)
 
-        async_at_started(self.hass, self._async_startup)
+        self.async_on_remove(async_at_started(self.hass, self._async_startup))
 
     def async_update_callback(self, reason=False):
         """Update the device's state."""
@@ -221,12 +225,16 @@ class SonyAVRDevice(MediaPlayerEntity):
 
     @property
     def state(self) -> MediaPlayerState | None:
-        if not self._device.state_service.power:
+        if self._device.state_service.power is False:
             return MediaPlayerState.OFF
         elif self._device.state_service.power:
             return MediaPlayerState.ON
         else:
             return None
+
+    @property
+    def available(self):
+        return getattr(self._device, "available", True)
 
     @property
     def source_list(self):
@@ -257,21 +265,20 @@ class SonyAVRDevice(MediaPlayerEntity):
         _attributes = {}
 
         _attributes["volume"] = self._device.volume
+        if getattr(self._device, "passive_initialization", False):
+            _attributes["sound_optimizer"] = self._device.state_service.sound_optimizer
+            _attributes["last_requested_hdmi_output"] = (
+                self._device.last_requested_hdmi_output
+            )
         return _attributes
 
     @property
     def volume_level(self):
         if self._device.volume is None or self._device.volume_range == 0:
-            # 	# device is muted or range isn't yet defined
-            return 0.0
+            return None
         else:
-            return float(
-                "%.2f"
-                % (
-                    (self._device.volume - self._device.volume_min)
-                    / self._device.volume_range
-                )
-            )
+            level = (self._device.volume - self._device.volume_min) / self._device.volume_range
+            return max(0.0, min(1.0, round(level, 2)))
 
     async def async_set_volume_level(self, volume: float) -> None:
         _vol = (volume * self._device.volume_range) + self._device.volume_min

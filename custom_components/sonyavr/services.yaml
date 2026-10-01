@@ -26,6 +26,8 @@ send_command:
             - Set Sound Field
             - Set Source
             - Byte Array String
+            - Set HDMI Output
+            - Set Sound Optimizer
     Value:
       name: Command Value
       description: 'The value associated with the command.'

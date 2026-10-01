@@ -1,0 +1,1 @@
+"""Sony AVR regression tests."""
