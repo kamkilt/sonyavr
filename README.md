@@ -1,5 +1,25 @@
 # Home Assistant to Sony AVR STR-DN1040, STR_DA5800ES, STR-DN850, STR-DN1060 & Other AVRs
 
+## About kamkilt's fork
+
+This repository is [kamkilt's](https://github.com/kamkilt) personal fork of [peteS-UK/sonyavr](https://github.com/peteS-UK/sonyavr), extended for a Sony **STR-DA5800ES** connected to Home Assistant over Ethernet. Credit for the original integration goes to peteS-UK and its contributors.
+
+The additional STR-DA5800ES features are available on the [`codex/str-da5800es-reconnect` branch](https://github.com/kamkilt/sonyavr/tree/codex/str-da5800es-reconnect):
+
+- Automatic reconnection after the receiver powers on, restarts or loses its network connection.
+- Faster state updates through push notifications, with read-only queries every 15 seconds to recover missed updates.
+- Passive startup and reconnection: the integration reads the current state without changing power, volume, mute or input.
+- Support for Network Standby being disabled. When the receiver loses network access, entities become unavailable and old readings are cleared; they recover after physical power-on.
+- Input names read from the receiver, including custom names, and volume control in 0.5 dB steps.
+- **Sound Optimizer** control (`Off`, `Normal`, `Low`) and state readback.
+- **HDMI output** control (`A`, `B`, `A+B`, `Off`). Its attribute records the last requested setting, rather than a state read from the receiver.
+
+To install these additions, [download the feature branch](https://github.com/kamkilt/sonyavr/archive/refs/heads/codex/str-da5800es-reconnect.zip) and copy its complete `custom_components/sonyavr` folder into Home Assistant's `config/custom_components/sonyavr`, then restart Home Assistant. Configure model `STR-DA5800ES`, TCP port `33335`, and enable **External Control** on the receiver. Network Standby is optional; powering on through Home Assistant requires the receiver to remain reachable.
+
+The fork has automated tests against Home Assistant **2026.9.4**, and kamkilt has reported stable operation on the actual receiver after weekend testing. See the [feature branch README](https://github.com/kamkilt/sonyavr/blob/codex/str-da5800es-reconnect/README.md) and [testing guide](https://github.com/kamkilt/sonyavr/blob/codex/str-da5800es-reconnect/docs/str-da5800es-testing.md) for details.
+
+The original integration documentation follows below.
+
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![maintained](https://img.shields.io/maintenance/yes/2026.svg)](#)
